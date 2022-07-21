@@ -1,24 +1,3 @@
-
-/*
- *   Copyright (c) 2013-2022. LA Referencia / Red CLARA and others
- *
- *   This program is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU Affero General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Affero General Public License for more details.
- *
- *   You should have received a copy of the GNU Affero General Public License
- *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- *   This file is part of LA Referencia software platform LRHarvester v4.x
- *   For any further information please contact Lautaro Matas <lmatas@gmail.com>
- */
-
 package org.lareferencia.contrib.ibict.controllers;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -77,27 +56,33 @@ public class PersonsSearchController {
 
     @ApiOperation(value = "Returns a list of Persons filtered by expressions", produces = "application/json")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returns a list of entities for a certain {type} with entity fields containing {expressions}", response = SearchResult.class) })
+            @ApiResponse(code = 200, message = "Returns a list of Persons filtered by expressions", response = SearchResult.class) })
     @RequestMapping(value = "/persons", method = RequestMethod.GET)
     @ApiImplicitParams({
             @ApiImplicitParam(name = "q", value = "Lucene query syntax - Example: orcid:\"0000-0001-5804-2982\" AND cienciaID:\"D41F-DF04-7EE8\" ", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "f", value = "Include facets (true or false)?", required = false, dataType = "boolean", paramType = "query"),
-            @ApiImplicitParam(name = "orcid", value = "Author's ORCID Identifier - Example: 0000-0001-5804-2982", required = false, dataType = "string", paramType = "query"),
-            @ApiImplicitParam(name = "cienciaID", value = "Author's CienciaID Identifier - Example: D41F-DF04-7EE8", required = false, dataType = "string", paramType = "query"),
-            @ApiImplicitParam(name = "name", value = "Person's name complex query: \\\"José Carlos\\\" \\n givenName:\\\"José\\\" familyName:\\\"Carlos\\\"", required = false, dataType = "string", paramType = "query"),
-            @ApiImplicitParam(name = "affiliation", value = "Person's affiliation complex query: \\\"Universidade de Lisboa\\\" \\n isni:\\\"1234-1234-1234-1234\\\" \\n ringgold:\\\"123456\\\"", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "identifier", value = "Person's Lattes identifier, ORCID or CPF", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "name", value = "Person's name or citation name", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "email", value = "Person's email address", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "nationality", value = "Person's nationality", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "affiliation", value = "Person's affiliation name or acronym", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "knowledgeArea", value = "Person's research areas", required = false, allowMultiple = true, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "community", value = "The name of the community the person belongs to", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "sort", value = "Sorting criteria in the format: property,(asc|desc) "
-                    + "Allowed values are: name, givenName, familyName. " + "Default sort order is ascending. "
-                    + "Multiple sort criteria are supported.", required = false, dataType = "string", paramType = "query"),
+            		 + "Allowed values are: name, citationName. " + "Default sort order is ascending. "
+                     + "Multiple sort criteria are supported.", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "size", value = "Number of records per page.", defaultValue = "10", allowableValues = "10,20,100", dataType = "integer", required = false, paramType = "query"),
             @ApiImplicitParam(name = "page", value = "Results page you want to retrieve (0..N)", defaultValue = "0", dataType = "integer", required = false, paramType = "query"),
 
     })
     HttpEntity<SearchResult> searchPersons(@RequestParam(name = "q", required = false) String q, boolean f,
             @RequestParam(name = "name", required = false) String name,
-            @RequestParam(name = "orcid", required = false) String orcid,
-            @RequestParam(name = "cienciaID", required = false) String cienciaID,
+            @RequestParam(name = "identifier", required = false) String identifier,
+            @RequestParam(name = "email", required = false) String email,
+            @RequestParam(name = "nationality", required = false) String nationality,
             @RequestParam(name = "affiliation", required = false) String affiliation,
+            @RequestParam(name = "knowledgeArea", required = false) String[] knowledgeAreas,
+            @RequestParam(name = "community", required = false) String community,
             @ApiIgnore("Ignored because swagger ui shows the wrong params, "
                     + "instead they are explained in the implicit params") @NonNull @PageableDefault() Pageable pageable) {
 
@@ -121,9 +106,10 @@ public class PersonsSearchController {
 
             } else {
 
-                filtersBuilder.addFilter("orcid", orcid).addFilter("cienciaID", cienciaID)
-                        .addFilter(SearchQueryParser.filterFromQuery(filterService, "name", name))
-                        .addFilter(SearchQueryParser.filterFromQuery(filterService, "affiliation", affiliation));
+                filtersBuilder.addFilter("identifier", identifier).addFilter("name", name)
+                        .addFilter("email", email).addFilter("nationality", nationality)
+                        .addFilter("affiliation", affiliation).addFilter("community", community)
+                        .addFilter("knowledgeArea", knowledgeAreas);
             }
 
             SearchResult entities = null;
@@ -140,9 +126,10 @@ public class PersonsSearchController {
             }
 
             Link selfLink = linkTo(methodOn(this.getClass()).searchPersons(QueryStringParserHelper.encode(q), f,
-                    QueryStringParserHelper.encode(name), QueryStringParserHelper.encode(orcid),
-                    QueryStringParserHelper.encode(cienciaID), QueryStringParserHelper.encode(affiliation), pageable))
-                            .withSelfRel();
+                    QueryStringParserHelper.encode(name), QueryStringParserHelper.encode(identifier),
+                    QueryStringParserHelper.encode(email), QueryStringParserHelper.encode(nationality),
+                    QueryStringParserHelper.encode(affiliation), QueryStringParserHelper.encode(knowledgeAreas), 
+                    QueryStringParserHelper.encode(community), pageable)).withSelfRel();
 
             entities.add(selfLink);
 
