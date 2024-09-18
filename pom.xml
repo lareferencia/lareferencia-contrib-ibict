@@ -29,12 +29,12 @@
 	<artifactId>lareferencia-contrib-ibict</artifactId>
 	<name>LA Referencia contrib ibict</name>
 	<description>LA Referencia IBICT contributions library</description>
-	<version>4.2.3</version>
+	<version>4.2.4</version>
 
 	<parent>
 		<groupId>org.lareferencia</groupId>
 		<artifactId>lareferencia-parent</artifactId>
-		<version>4.2.3</version>
+		<version>4.2.4</version>
 	</parent>
 
 
@@ -44,19 +44,19 @@
 		<dependency>
 			<groupId>org.lareferencia</groupId>
 			<artifactId>lareferencia-core-lib</artifactId>
-			<version>4.2.3</version>
+			<version>4.2.4</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.lareferencia</groupId>
 			<artifactId>lareferencia-entity-lib</artifactId>
-			<version>4.2.3</version>
+			<version>4.2.4</version>
 		</dependency>
 		
         <dependency>
 			<groupId>org.lareferencia</groupId>
 			<artifactId>lareferencia-contrib-rcaap</artifactId>
-			<version>4.2.3</version>
+			<version>4.2.4</version>
 			
 			<exclusions>
 				<exclusion>  <!-- declare the exclusion here -->
