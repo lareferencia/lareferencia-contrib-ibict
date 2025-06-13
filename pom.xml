@@ -56,21 +56,10 @@
         <dependency>
 			<groupId>org.lareferencia</groupId>
 			<artifactId>lareferencia-contrib-rcaap</artifactId>
-			<version>4.2.0</version>
-			
-			<exclusions>
-				<exclusion>  <!-- declare the exclusion here -->
-          			<groupId>org.apache.lucene</groupId>
-          			<artifactId>lucene-queryparser</artifactId>	
-				</exclusion>
-			</exclusions>
+			<version>4.2.0</version>			
 		</dependency>
 		
-		<dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-queryparser</artifactId>
-            <version>9.4.2</version>
-        </dependency>	
+
          
    </dependencies>
    </project>
